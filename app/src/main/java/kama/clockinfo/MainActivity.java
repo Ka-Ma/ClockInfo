@@ -8,7 +8,7 @@ import android.util.Log;
 import android.view.View;
 
 public class MainActivity extends AppCompatActivity {
-//TODO somewhere need to put a bit so that the new day refreshes the screen
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -22,6 +22,8 @@ public class MainActivity extends AppCompatActivity {
         // status bar is hidden, so hide that too if necessary.
         //ActionBar actionBar = getActionBar();
         //actionBar.hide();
+
+        //Handler to refresh the day and date textviews on the new day.
 
         if (savedInstanceState == null) {
             ClockFragment clockFragment = ClockFragment.newInstance();
@@ -41,4 +43,5 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d("myApp", "resuming main activity");
     }
+
 }

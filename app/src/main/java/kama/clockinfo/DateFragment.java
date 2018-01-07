@@ -1,6 +1,7 @@
 package kama.clockinfo;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -20,6 +21,18 @@ public class DateFragment extends Fragment {
 
     TextView mDay;
     TextView mDate;
+    private Handler handler = new Handler();
+
+    private Runnable runnable = new Runnable(){
+        @Override
+        public void run(){
+            long ms = tilTomorrow();
+
+            setTextViews();
+
+            handler.postDelayed(this, ms);
+        }
+    };
 
     public static DateFragment newInstance(){
         DateFragment f = new DateFragment();
@@ -69,7 +82,7 @@ public class DateFragment extends Fragment {
 
         Log.d("myApp", "resumed date fragment");
 
-        setTextViews();
+        handler.postDelayed(runnable, 100);
     }
 
     @Override
@@ -94,5 +107,13 @@ public class DateFragment extends Fragment {
         DateFormat dayFormat = new SimpleDateFormat("EEEE");
         String currentDay = dayFormat.format(date);
         mDay.setText(currentDay);
+    }
+
+    private long tilTomorrow(){
+        long ms = 600000;
+
+        //TODO find ms til tomorrow
+
+        return ms;
     }
 }

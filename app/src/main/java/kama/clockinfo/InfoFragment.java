@@ -14,19 +14,26 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
+import java.net.SocketException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import org.apache.commons.net.ftp.FTPClient;
 
 
 /**
@@ -40,6 +47,7 @@ public class InfoFragment extends Fragment {
     String mTime, mTemp, mCloud, mRainTrace, mHumidity, mWindDir, mWindSpd;
     Integer loop = 0;
 
+    //handler & runnable for getting current observations
     Handler getInfoHandler = new Handler();
     Runnable getInfoRunnable = new Runnable() {
         @Override
@@ -54,11 +62,30 @@ public class InfoFragment extends Fragment {
         }
     };
 
+    //handler & runnable for getting tomorrows precis
+    Handler getForecastHandler = new Handler();
+    Runnable getForecastRunnable = new Runnable() {
+        @Override
+        public void run(){
+
+            new getTomorrow().execute();
+
+            //TODO get ms til tomorrow
+            long ms = 120000000; //tilTomorrow();
+
+            getForecastHandler.postDelayed(this, ms);
+
+        }
+    };
+
+    //handler & runnable for displaying alternating information on screen
     Handler setInfoHandler = new Handler();
     Runnable setInfoRunnable = new Runnable(){
         @Override
         public void run(){
             String msg;
+
+            //TODO want to add icons to reduce footprint of info
 
             switch (loop){
                 case 0: msg = mTemp+(char) 0x00B0+"C";
@@ -117,6 +144,7 @@ public class InfoFragment extends Fragment {
 
         //Handlers for timed events
         getInfoHandler.postDelayed(getInfoRunnable, 0);
+        getForecastHandler.postDelayed(getForecastRunnable, 0);
         setInfoHandler.postDelayed(setInfoRunnable, 10000);
 
     }
@@ -147,37 +175,53 @@ public class InfoFragment extends Fragment {
     private class getTomorrow extends AsyncTask<Void,Void,Void>{
         @Override
         protected Void doInBackground(Void... params){
-//TODO getting tomorrows info needs to be revisited
+            //TODO getting tomorrows info needs to be revisited --- ftp host unknown :(
             Log.d("myApp", "getting tomorrows forecast");
 
             String xmlString = "";
 
             try{
-                URL url = new URL("ftp://ftp.bom.gov.au/anon/gen/fwo/IDW14199.xml");
-                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
-                urlConnection.connect();
+                FTPClient ftpClient = new FTPClient();
+                //ftpClient.enterLocalPassiveMode();
+                //ftpClient.connect(InetAddress.getByName("ftp.bom.gov.au"));
+                ftpClient.connect("ftp.bom.gov.au");
+                Log.d("myApp", "connected? " + ftpClient.getReplyString());
+                Log.d("myApp", "connected? " + ftpClient.getReplyCode());
+                //Log.d("myApp", "it logged in " + ftpClient.login("anon", "anon"));
+                Log.d("myApp", "it changed dir "+ ftpClient.changeWorkingDirectory("/anon/gen/fwo"));
+                //Log.d("myApp", "it changed dir "+ ftpClient.changeToParentDirectory());
+                //Log.d("myApp", "list of files " + ftpClient.listDirectories().toString());
+                Log.d("myApp", "it is " + ftpClient.printWorkingDirectory() );
 
-                // gets the server json data
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+                String file = "anon/gen/fwo/IDW14199.xml";
 
-                String line;
+                BufferedInputStream buffIn = null;
+                buffIn = new BufferedInputStream(new FileInputStream(file));
+                ftpClient.enterLocalPassiveMode();
+                Log.d("myApp", "it worked? "+ ftpClient.storeFile("forecast.xml", buffIn));
+                buffIn.close();
+                //ftpClient.logout();
+                ftpClient.disconnect();
 
 
-                while ((line = bufferedReader.readLine()) != null) {
-                    //Log.d("myApp", "concat the trimmed: " + line.trim());
-                    xmlString = xmlString.concat(line.trim());
-                    //Log.d("myApp", "xmlString " + xmlString);
-                }
-            } catch (ProtocolException e) {
-                e.printStackTrace();
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
+
+
+                Log.d("myApp", "xml string = "+xmlString);
+
+            } catch (UnknownHostException e1) {
+                e1.printStackTrace();
+                Log.e("myApp", "boom " + e1);
+            } catch (SocketException e1) {
+                e1.printStackTrace();
+                Log.e("myApp", "boom " + e1);
+            } catch (IOException e1) {
+                e1.printStackTrace();
+                Log.e("myApp", "boom " + e1);
             }
 
+
             return null;
+
         }
     }
 
