@@ -26,7 +26,7 @@ public class DateFragment extends Fragment {
     private Runnable runnable = new Runnable(){
         @Override
         public void run(){
-            long ms = tilTomorrow();
+            long ms = GetTimes.tilTomorrow();
 
             setTextViews();
 
@@ -109,11 +109,4 @@ public class DateFragment extends Fragment {
         mDay.setText(currentDay);
     }
 
-    private long tilTomorrow(){
-        long ms = 600000;
-
-        //TODO find ms til tomorrow
-
-        return ms;
-    }
 }

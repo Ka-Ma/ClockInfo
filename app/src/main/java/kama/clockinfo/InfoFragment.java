@@ -72,7 +72,7 @@ public class InfoFragment extends Fragment {
         public void run(){
 
             new getTomorrow().execute();
-            
+
             long ms = GetTimes.tilTomorrow();
 
             getForecastHandler.postDelayed(this, ms);
