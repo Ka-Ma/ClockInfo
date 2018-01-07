@@ -10,15 +10,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import org.apache.commons.net.ftp.FTPFile;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -55,7 +58,7 @@ public class InfoFragment extends Fragment {
 
             new getInfo().execute();
 
-            long ms = tilNext();
+            long ms = GetTimes.tilNext();
 
             getInfoHandler.postDelayed(this, ms);
 
@@ -69,9 +72,8 @@ public class InfoFragment extends Fragment {
         public void run(){
 
             new getTomorrow().execute();
-
-            //TODO get ms til tomorrow
-            long ms = 120000000; //tilTomorrow();
+            
+            long ms = GetTimes.tilTomorrow();
 
             getForecastHandler.postDelayed(this, ms);
 
@@ -175,7 +177,7 @@ public class InfoFragment extends Fragment {
     private class getTomorrow extends AsyncTask<Void,Void,Void>{
         @Override
         protected Void doInBackground(Void... params){
-            //TODO getting tomorrows info needs to be revisited --- ftp host unknown :(
+            //TODO getting tomorrows info needs to be finished http://commons.apache.org/proper/commons-net/javadocs/api-3.6/index.html
             Log.d("myApp", "getting tomorrows forecast");
 
             String xmlString = "";
@@ -185,25 +187,47 @@ public class InfoFragment extends Fragment {
                 //ftpClient.enterLocalPassiveMode();
                 //ftpClient.connect(InetAddress.getByName("ftp.bom.gov.au"));
                 ftpClient.connect("ftp.bom.gov.au");
-                Log.d("myApp", "connected? " + ftpClient.getReplyString());
+                //Log.d("myApp", "connected? " + ftpClient.getReplyString());
                 Log.d("myApp", "connected? " + ftpClient.getReplyCode());
-                //Log.d("myApp", "it logged in " + ftpClient.login("anon", "anon"));
+                Log.d("myApp", "it logged in " + ftpClient.login("Anonymous", "Guest"));
+                Log.d("myApp", "logged in? " + ftpClient.getReplyString());
+                //Log.d("myApp", "logged in? " + ftpClient.getReplyCode());
                 Log.d("myApp", "it changed dir "+ ftpClient.changeWorkingDirectory("/anon/gen/fwo"));
                 //Log.d("myApp", "it changed dir "+ ftpClient.changeToParentDirectory());
-                //Log.d("myApp", "list of files " + ftpClient.listDirectories().toString());
-                Log.d("myApp", "it is " + ftpClient.printWorkingDirectory() );
+                Log.d("myApp", "pwd is " + ftpClient.printWorkingDirectory() );
+                Log.d("myApp", "list of files ");
+                FTPFile[] rah = ftpClient.listFiles();
+                Log.d("myApp", "there are "+rah.length+" files");
+                /*
+                for(int i = 0; i<rah.length; i++){
+                    Log.d("myApp", rah[i].getName());
+                }
+                */
 
-                String file = "anon/gen/fwo/IDW14199.xml";
+                String file = "IDW14199.xml";
+                Log.d("myApp", "file is " + file);
 
-                BufferedInputStream buffIn = null;
-                buffIn = new BufferedInputStream(new FileInputStream(file));
+
+                //TODO parse xml https://developer.android.com/training/basics/network-ops/xml.html  <product xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.7" xsi:noNamespaceSchemaLocation="http://www.bom.gov.au/schema/v1.7/product.xsd"><forecast><area aac="WA_PT053" description="Perth" type="location" parent-aac="WA_PW009">...</area>
                 ftpClient.enterLocalPassiveMode();
-                Log.d("myApp", "it worked? "+ ftpClient.storeFile("forecast.xml", buffIn));
-                buffIn.close();
-                //ftpClient.logout();
+                OutputStream os = new OutputStream() {
+                    @Override
+                    public void write(int b) throws IOException {
+                        //TODO something here to write the file somewhere or somethign else entirely.... https://stackoverflow.com/questions/9464087/how-to-read-xml-file-in-android
+
+                    }
+                };
+                ftpClient.retrieveFile(file, os);
+
+
+                //BufferedInputStream buffIn = null;
+                //buffIn = new BufferedInputStream(new FileInputStream(file));
+                //Log.d("myApp", "it worked? "+ ftpClient.storeFile("forecast.xml", buffIn));
+                //buffIn.close();
+
+                os.close();
+                ftpClient.logout();
                 ftpClient.disconnect();
-
-
 
 
                 Log.d("myApp", "xml string = "+xmlString);
@@ -265,19 +289,19 @@ public class InfoFragment extends Fragment {
             }
 
 
-            Log.d("myApp", "the string " + jsonString);
+            //Log.d("myApp", "the string " + jsonString);
 
             //put json string in an object/array to get info we want
             try {
                 Log.d("myApp", "trying to parse json");
                 JSONObject jandakot = new JSONObject(jsonString);
-                Log.d("myApp", "jandakot object " + jandakot.toString());
+                //Log.d("myApp", "jandakot object " + jandakot.toString());
                 JSONObject jandakotObs = jandakot.getJSONObject("observations");
-                Log.d("myApp", "jandakot obs object " + jandakotObs.toString());
+                //Log.d("myApp", "jandakot obs object " + jandakotObs.toString());
                 JSONArray jandakotData = jandakotObs.getJSONArray("data");
-                Log.d("myApp", "jandakot data array " + jandakotData.toString());
+                //Log.d("myApp", "jandakot data array " + jandakotData.toString());
                 JSONObject jandakotLatest = jandakotData.getJSONObject(0);
-                Log.d("myApp", "jandakot latest object " + jandakotLatest.toString());
+                //Log.d("myApp", "jandakot latest object " + jandakotLatest.toString());
                 mTime = jandakotLatest.getString("local_date_time");
                 mTemp = jandakotLatest.getString("air_temp");
                 mCloud = jandakotLatest.getString("cloud");
@@ -306,32 +330,5 @@ public class InfoFragment extends Fragment {
         }
     }
 
-    private long tilNext(){
-        long ms = 600000;
 
-        //TODO find ms til next o'clock or half past. Needs testing
-
-        Log.d("myApp", "finding ms to next obs update");
-
-        Date date = new Date();
-
-        //get minutes past hour
-        DateFormat timeFormat = new SimpleDateFormat("m");
-        String currentMins = timeFormat.format(date);
-        Integer mins = Integer.parseInt(currentMins);
-
-        Log.d("myApp", "string = "+currentMins+" integer = "+mins);
-
-        //if minutes is equal to or greater than 30 find ms to next hour
-        if(mins >= 30){
-            ms = (60 - mins) * 100000;
-        }else if(mins<30){
-            //if minutes is less than 30 find ms to next half hour
-            ms = (30 - mins) * 100000;
-        }
-
-        Log.d("myApp", "There are " + ms + " milliseconds until the next obs update");
-
-        return ms;
-    }
 }
