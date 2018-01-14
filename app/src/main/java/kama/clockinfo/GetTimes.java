@@ -28,12 +28,13 @@ public class GetTimes {
 
         Log.d("myApp", "string = "+currentMins+" integer = "+mins);
 
+        //added 1000ms buffer
         //if minutes is equal to or greater than 30 find ms to next hour
         if(mins >= 30){
-            ms = (60 - mins) * 60000;
+            ms = (60 - mins) * 60000 + 1000;
         }else if(mins<30){
             //if minutes is less than 30 find ms to next half hour
-            ms = (30 - mins) * 60000;
+            ms = (30 - mins) * 60000 + 1000;
         }
 
         Log.d("myApp", "There are " + ms + " milliseconds until the next obs update");

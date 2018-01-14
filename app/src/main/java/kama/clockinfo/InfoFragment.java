@@ -20,6 +20,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -210,6 +211,7 @@ public class InfoFragment extends Fragment {
 
                 //TODO parse xml https://developer.android.com/training/basics/network-ops/xml.html  <product xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.7" xsi:noNamespaceSchemaLocation="http://www.bom.gov.au/schema/v1.7/product.xsd"><forecast><area aac="WA_PT053" description="Perth" type="location" parent-aac="WA_PW009">...</area>
                 ftpClient.enterLocalPassiveMode();
+
                 OutputStream os = new OutputStream() {
                     @Override
                     public void write(int b) throws IOException {
@@ -217,6 +219,10 @@ public class InfoFragment extends Fragment {
 
                     }
                 };
+
+                //create file, overwrite if neccessary
+
+
                 ftpClient.retrieveFile(file, os);
 
 
