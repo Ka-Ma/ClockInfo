@@ -37,7 +37,7 @@ public class GetTimes {
             ms = (30 - mins) * 60000 + 1000;
         }
 
-        Log.d("myApp", "There are " + ms + " milliseconds until the next obs update");
+        Log.d("myApp", "There are " + ms + " milliseconds until the next obs update which is " + ms/60000+" minutes");
 
         return ms;
     }
@@ -67,6 +67,8 @@ public class GetTimes {
         Log.d("myApp", "Calc is 60 - "+mins+" = "+ (60-mins)+" + 24 - "+hours+" = "
                 +(24-hours)+" * 60 = "+((24-hours)*60)+" * 60000 = " + ms
                 + " milliseconds until the next day");
+        Log.d("myApp", "minutes til tomorrow = "+ ms/60000);
+        Log.d("myApp", "hours til tomorrow = "+ ms/60000/60);
 
         return ms;
     }
