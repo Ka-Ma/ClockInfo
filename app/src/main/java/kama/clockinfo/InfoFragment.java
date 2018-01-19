@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.apache.commons.net.ftp.FTPFile;
@@ -47,6 +48,7 @@ import org.apache.commons.net.ftp.FTPClient;
 public class InfoFragment extends Fragment {
 
     TextView mInfo, mObsInfo;
+    ImageView mObsImg;
     String locn = "94609";  //defaults to jandakot
     String mTime, mTemp, mCloud, mRainTrace, mHumidity, mWindDir, mWindSpd;
     Integer loop = 0;
@@ -86,24 +88,48 @@ public class InfoFragment extends Fragment {
     Runnable setInfoRunnable = new Runnable(){
         @Override
         public void run(){
-            String msg;
+            String msg = "";
 
             //TODO want to add icons to reduce footprint of info
 
             switch (loop){
                 case 0: msg = mTemp+(char) 0x00B0+"C";
+                    mObsImg.setVisibility(View.GONE);
                     break;
-                case 1: if(mCloud.contains("-")){msg = mRainTrace+"mm";}else{msg=mCloud+" "+mRainTrace+"mm";}
+                case 1: //TODO change this so the appropriate weather graphic shows
+                    if(mCloud.contains("-")){
+                        msg = mRainTrace + "mm";
+                    }else{
+                        mObsImg.setVisibility(View.VISIBLE);
+                        switch(mCloud){
+                            case "Clear": mObsImg.setImageResource(R.drawable.clear);
+                                break;
+                            case "Cloudy": mObsImg.setImageResource(R.drawable.cloudy);
+                                break;
+                            default: msg = mCloud + " ";
+                        }
+
+                    }
+                    if(!mRainTrace.equals("0.0")){
+                        msg = msg + mRainTrace + "mm";
+                    }
                     break;
-                case 2: msg = mWindSpd+"kmh "+mWindDir;
+                case 2: mObsImg.setVisibility(View.GONE);
+                    msg = mWindSpd + "kmh " + mWindDir;
                     break;
-                case 3: msg = mHumidity+"% humidity";
+                case 3: msg = mHumidity;
+                    mObsImg.setVisibility(View.VISIBLE);
+                    mObsImg.setAdjustViewBounds(true);
+                    mObsImg.setMaxHeight(45);
+                    mObsImg.setMaxWidth(45);
+                    mObsImg.setImageResource(R.drawable.icon_humidity2);
                     break;
-                default: msg= "an Error has occurred";
+                default: msg = "an Error has occurred";
             }
 
             mInfo.setText(msg);
             mObsInfo.setText(" at "+mTime);
+
             loop++;
             if(loop>3){loop=0;}
 
@@ -144,6 +170,7 @@ public class InfoFragment extends Fragment {
         //link member variables to layout items
         mInfo = v.findViewById(R.id.info);
         mObsInfo = v.findViewById(R.id.obsInfo);
+        mObsImg = v.findViewById(R.id.infoImage);
 
         //Handlers for timed events
         getInfoHandler.postDelayed(getInfoRunnable, 0);
