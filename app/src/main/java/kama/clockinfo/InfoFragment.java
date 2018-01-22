@@ -90,7 +90,7 @@ public class InfoFragment extends Fragment {
         public void run(){
             String msg = "";
 
-            //TODO want to add icons to reduce footprint of info
+            //TODO want to add icons to reduce footprint of info (need to adjust images to be 200px & the right colour)
 
             switch (loop){
                 case 0: msg = mTemp+(char) 0x00B0+"C";
@@ -101,6 +101,8 @@ public class InfoFragment extends Fragment {
                         msg = mRainTrace + "mm";
                     }else{
                         mObsImg.setVisibility(View.VISIBLE);
+                        mObsImg.setMaxHeight(200);
+                        mObsImg.setMaxWidth(200);
                         switch(mCloud){
                             case "Clear": mObsImg.setImageResource(R.drawable.clear);
                                 break;
@@ -120,8 +122,8 @@ public class InfoFragment extends Fragment {
                 case 3: msg = mHumidity;
                     mObsImg.setVisibility(View.VISIBLE);
                     mObsImg.setAdjustViewBounds(true);
-                    mObsImg.setMaxHeight(45);
-                    mObsImg.setMaxWidth(45);
+                    mObsImg.setMaxHeight(200);
+                    mObsImg.setMaxWidth(200);
                     mObsImg.setImageResource(R.drawable.icon_humidity2);
                     break;
                 default: msg = "an Error has occurred";
