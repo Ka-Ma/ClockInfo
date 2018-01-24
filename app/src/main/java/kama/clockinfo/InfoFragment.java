@@ -135,7 +135,7 @@ public class InfoFragment extends Fragment {
             loop++;
             if(loop>3){loop=0;}
 
-            setInfoHandler.postDelayed(this, 10000); //10 secs
+            setInfoHandler.postDelayed(this, 5000); //5 secs
         }
     };
 

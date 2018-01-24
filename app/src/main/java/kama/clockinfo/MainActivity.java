@@ -29,10 +29,14 @@ public class MainActivity extends AppCompatActivity {
             ClockFragment clockFragment = ClockFragment.newInstance();
             InfoFragment infoFragment = InfoFragment.newInstance();
             DateFragment dateFragment = DateFragment.newInstance();
+            HelpFragment helpFragment = HelpFragment.newInstance();
+            SettingsFragment settingsFragment = SettingsFragment.newInstance();
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             ft.add(R.id.topFragmentFrame, clockFragment, "Top");
             ft.add(R.id.middleFragmentFrame, infoFragment, "middle");
             ft.add(R.id.bottomFragmentFrame, dateFragment, "bottom");
+            ft.add(R.id.helpFragmentFrame, helpFragment, "help");
+            ft.add(R.id.settingsFragmentFrame, helpFragment, "settings");
             ft.commit();
         }
     }
