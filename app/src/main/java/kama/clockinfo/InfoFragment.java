@@ -20,10 +20,14 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -212,21 +216,29 @@ public class InfoFragment extends Fragment {
 
             String xmlString = "";
 
+            FTPClient ftpClient = new FTPClient();
+            FileOutputStream stream = null;
+
             try{
-                FTPClient ftpClient = new FTPClient();
-                //ftpClient.enterLocalPassiveMode();
-                //ftpClient.connect(InetAddress.getByName("ftp.bom.gov.au"));
                 ftpClient.connect("ftp.bom.gov.au");
+
                 //Log.d("myApp", "connected? " + ftpClient.getReplyString());
                 Log.d("myApp", "connected? " + ftpClient.getReplyCode());
+
+                //login
                 Log.d("myApp", "it logged in " + ftpClient.login("Anonymous", "Guest"));
+
                 Log.d("myApp", "logged in? " + ftpClient.getReplyString());
                 //Log.d("myApp", "logged in? " + ftpClient.getReplyCode());
+
+                //change directory
                 Log.d("myApp", "it changed dir "+ ftpClient.changeWorkingDirectory("/anon/gen/fwo"));
-                //Log.d("myApp", "it changed dir "+ ftpClient.changeToParentDirectory());
+
                 Log.d("myApp", "pwd is " + ftpClient.printWorkingDirectory() );
                 Log.d("myApp", "list of files ");
+
                 FTPFile[] rah = ftpClient.listFiles();
+
                 Log.d("myApp", "there are "+rah.length+" files");
                 /*
                 for(int i = 0; i<rah.length; i++){
@@ -234,38 +246,54 @@ public class InfoFragment extends Fragment {
                 }
                 */
 
-                String file = "IDW14199.xml";
-                Log.d("myApp", "file is " + file);
+                //download file
+                String filename = "IDW14199.xml";
+                Log.d("myApp", "file is " + filename);
+
+                File fileDir = getActivity().getFilesDir();
+
+                File file = new File(fileDir, filename);
+                Log.d("myApp", "setting writable "+file.setWritable(true));
+                Log.d("myApp", "writable? "+file.canWrite());
+                stream = new FileOutputStream(file);
+
+                Log.d("myApp", "retrieving file");
+                ftpClient.enterLocalPassiveMode();
+               // Log.d("myApp", "status "+ftpClient.getStatus());
+               // Log.d("myApp", "reply code "+ftpClient.getReplyCode());
+                Log.d("myApp", "did it retrieve the file? "+ftpClient.retrieveFile(filename, stream));
+               // Log.d("myApp", "reply code "+ftpClient.getReplyCode());
+               // Log.d("myApp", "status "+ftpClient.getStatus());
+
+                //Log.d("myApp", "the local file "+ file.toString());
 
 
                 //TODO parse xml https://developer.android.com/training/basics/network-ops/xml.html  <product xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.7" xsi:noNamespaceSchemaLocation="http://www.bom.gov.au/schema/v1.7/product.xsd"><forecast><area aac="WA_PT053" description="Perth" type="location" parent-aac="WA_PW009">...</area>
-                ftpClient.enterLocalPassiveMode();
 
-                OutputStream os = new OutputStream() {
-                    @Override
-                    public void write(int b) throws IOException {
-                        //TODO something here to write the file somewhere or somethign else entirely.... https://stackoverflow.com/questions/9464087/how-to-read-xml-file-in-android
+                //test read of file
+                FileInputStream inStream = getActivity().openFileInput(filename);
+                InputStreamReader inputSR = new InputStreamReader(inStream);
+                BufferedReader buffRead = new BufferedReader(inputSR);
 
-                    }
-                };
+                StringBuilder finalString = new StringBuilder();
+                String oneline;
 
-                //create file, overwrite if neccessary
+                while((oneline = buffRead.readLine())!=null){
+                    //Log.d("myApp", oneline);
+                    finalString.append(oneline);
+                }
 
+                buffRead.close();
+                inStream.close();
+                inputSR.close();
 
-                ftpClient.retrieveFile(file, os);
+                Log.d("myApp", "the xml is: "+finalString.toString());
+                //ends test read
 
-
-                //BufferedInputStream buffIn = null;
-                //buffIn = new BufferedInputStream(new FileInputStream(file));
-                //Log.d("myApp", "it worked? "+ ftpClient.storeFile("forecast.xml", buffIn));
-                //buffIn.close();
-
-                os.close();
+                //file.delete();
+                stream.close();
                 ftpClient.logout();
                 ftpClient.disconnect();
-
-
-                Log.d("myApp", "xml string = "+xmlString);
 
             } catch (UnknownHostException e1) {
                 e1.printStackTrace();
