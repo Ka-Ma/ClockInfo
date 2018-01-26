@@ -4,7 +4,36 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:id="@+id/mainView">
+
+    <ImageButton
+        android:id="@+id/helpBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:adjustViewBounds="false"
+        android:background="@color/colorPrimary"
+        android:maxHeight="100dp"
+        android:maxWidth="100dp"
+        android:src="@android:drawable/ic_menu_help"
+        app:layout_constraintRight_toRightOf="parent"
+
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageButton
+        android:id="@+id/settingsBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxHeight="100dp"
+        android:maxWidth="100dp"
+        android:layout_margin="10dp"
+        android:background="@color/colorPrimary"
+        android:src="@android:drawable/ic_menu_preferences"
+        app:layout_constraintRight_toLeftOf="@id/helpBtn"
+        app:layout_constraintTop_toTopOf="parent"
+
+        />
 
     <FrameLayout
         android:id="@+id/topFragmentFrame"

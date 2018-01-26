@@ -5,15 +5,10 @@
     android:layout_height="match_parent">
 
 
-    <ImageButton
-        android:id="@+id/settingsBtn"
+    <TextView
+        android:id="@+id/settingContent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:maxHeight="45dp"
-        android:maxWidth="45dp"
-        android:background="@color/colorPrimary"
-        android:src="@android:drawable/ic_menu_preferences"
-
-        />
+        android:text="SETTINGS\nThis will contain choice of location"/>
 
 </RelativeLayout>

@@ -13,7 +13,7 @@ import android.widget.ImageButton;
  */
 
 public class SettingsFragment extends Fragment {
-    ImageButton mSettingsButton;
+
 
 
     public static SettingsFragment newInstance(){
@@ -46,7 +46,7 @@ public class SettingsFragment extends Fragment {
         View v = getActivity().findViewById(R.id.settingsFragmentFrame);
 
         //link member variables to layout items
-        mSettingsButton = v.findViewById(R.id.settingsBtn);
+        //TODO add settings options
 
     }
 
@@ -56,12 +56,7 @@ public class SettingsFragment extends Fragment {
 
         Log.d("myApp", "settings frag started");
 
-        mSettingsButton.setOnClickListener(new View.OnClickListener(){
-            public void onClick(View v){
-                //TODO add action to settings button
-                //another fragment within which you can select from a list of available areas for observations and forecast
-            }
-        });
+
     }
 
     @Override

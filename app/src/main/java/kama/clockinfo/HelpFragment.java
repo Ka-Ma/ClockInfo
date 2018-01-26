@@ -15,7 +15,6 @@ import java.util.Date;
  */
 
 public class HelpFragment extends Fragment {
-    ImageButton mHelpButton;
 
     public static HelpFragment newInstance(){
         HelpFragment f = new HelpFragment();
@@ -47,8 +46,7 @@ public class HelpFragment extends Fragment {
         View v = getActivity().findViewById(R.id.helpFragmentFrame);
 
         //link member variables to layout items
-        mHelpButton = v.findViewById(R.id.helpBtn);
-
+        //TODO add help information
     }
 
     @Override
@@ -57,7 +55,7 @@ public class HelpFragment extends Fragment {
 
         Log.d("myApp", "help frag started");
 
-        //TODO add onclick to help button
+
     }
 
     @Override
