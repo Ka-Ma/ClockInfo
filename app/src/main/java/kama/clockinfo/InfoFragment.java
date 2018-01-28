@@ -100,29 +100,37 @@ public class InfoFragment extends Fragment {
                 case 0: msg = mTemp+(char) 0x00B0+"C";
                     mObsImg.setVisibility(View.GONE);
                     break;
+
                 case 1: //TODO change this so the appropriate weather graphic shows
-                    if(mCloud.contains("-")){
+                    if((mCloud.contains("-"))||(!mRainTrace.equals("0.0"))){
                         msg = mRainTrace + "mm";
                     }else{
                         mObsImg.setVisibility(View.VISIBLE);
                         mObsImg.setMaxHeight(200);
                         mObsImg.setMaxWidth(200);
+
                         switch(mCloud){
                             case "Clear": mObsImg.setImageResource(R.drawable.clear);
                                 break;
                             case "Cloudy": mObsImg.setImageResource(R.drawable.cloudy);
                                 break;
+                            case "Partly cloudy":mObsImg.setImageResource(R.drawable.partly_cloudy);
+                                break;
+                            case "Mostly cloudy":mObsImg.setImageResource(R.drawable.cloudy);
+                                break;
                             default: msg = mCloud + " ";
                         }
 
-                    }
-                    if(!mRainTrace.equals("0.0")){
-                        msg = msg + mRainTrace + "mm";
+                        if(!mRainTrace.equals("0.0")){
+                            msg = msg + mRainTrace + "mm";
+                        }
                     }
                     break;
+
                 case 2: mObsImg.setVisibility(View.GONE);
                     msg = mWindSpd + "kmh " + mWindDir;
                     break;
+
                 case 3: msg = mHumidity;
                     mObsImg.setVisibility(View.VISIBLE);
                     mObsImg.setAdjustViewBounds(true);
@@ -130,6 +138,7 @@ public class InfoFragment extends Fragment {
                     mObsImg.setMaxWidth(200);
                     mObsImg.setImageResource(R.drawable.icon_humidity2);
                     break;
+
                 default: msg = "an Error has occurred";
             }
 
