@@ -4,6 +4,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.style.AbsoluteSizeSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -92,57 +95,102 @@ public class InfoFragment extends Fragment {
     Runnable setInfoRunnable = new Runnable(){
         @Override
         public void run(){
-            String msg = "";
+            Spannable msgSpn = new SpannableStringBuilder();
+            mObsImg.setAdjustViewBounds(true);
+            mObsImg.setMaxHeight(200);
+            mObsImg.setMaxWidth(200);
+
 
             //TODO want to add icons to reduce footprint of info (need to adjust images to be 200px & the right colour)
 
             switch (loop){
-                case 0: msg = mTemp+(char) 0x00B0+"C";
+                case 0: msgSpn = new SpannableStringBuilder(mTemp+(char) 0x00B0+"C");
                     mObsImg.setVisibility(View.GONE);
                     break;
 
                 case 1: //TODO change this so the appropriate weather graphic shows
-                    if((mCloud.contains("-"))||(!mRainTrace.equals("0.0"))){
-                        msg = mRainTrace + "mm";
-                    }else{
-                        mObsImg.setVisibility(View.VISIBLE);
-                        mObsImg.setMaxHeight(200);
-                        mObsImg.setMaxWidth(200);
 
-                        switch(mCloud){
-                            case "Clear": mObsImg.setImageResource(R.drawable.clear);
-                                break;
-                            case "Cloudy": mObsImg.setImageResource(R.drawable.cloudy);
-                                break;
-                            case "Partly cloudy":mObsImg.setImageResource(R.drawable.partly_cloudy);
-                                break;
-                            case "Mostly cloudy":mObsImg.setImageResource(R.drawable.cloudy);
-                                break;
-                            default: msg = mCloud + " ";
-                        }
-
-                        if(!mRainTrace.equals("0.0")){
-                            msg = msg + mRainTrace + "mm";
-                        }
-                    }
-                    break;
-
-                case 2: mObsImg.setVisibility(View.GONE);
-                    msg = mWindSpd + "kmh " + mWindDir;
-                    break;
-
-                case 3: msg = mHumidity;
                     mObsImg.setVisibility(View.VISIBLE);
-                    mObsImg.setAdjustViewBounds(true);
-                    mObsImg.setMaxHeight(200);
-                    mObsImg.setMaxWidth(200);
+
+                    switch(mCloud){
+                        case "-": mObsImg.setVisibility(View.GONE);
+                            break;
+                        case "Clear": mObsImg.setImageResource(R.drawable.clear);
+                            break;
+                        case "Cloudy": mObsImg.setImageResource(R.drawable.cloudy);
+                            break;
+                        case "Partly cloudy":mObsImg.setImageResource(R.drawable.partly_cloudy);
+                            break;
+                        case "Mostly cloudy":mObsImg.setImageResource(R.drawable.cloudy);
+                            break;
+                        default: msgSpn = new SpannableStringBuilder(mCloud + " ");
+                    }
+
+                    if(!mRainTrace.equals("0.0")){
+                        msgSpn = new SpannableStringBuilder(mRainTrace+"mm");
+                    }
+
+                    if((mCloud.equals("-"))&&(mRainTrace.equals("0.0"))){
+                        msgSpn = new SpannableStringBuilder(("no rainfall"));
+                        setFontSizeForPath(msgSpn, "no rainfall", (int) mObsInfo.getTextSize() - 10);
+                    }
+
+                    break;
+
+                case 2: mObsImg.setVisibility(View.VISIBLE);
+
+                    int dir = 0;
+
+                    switch (mWindDir){
+                        case "N": dir = R.drawable.wind_dir_n;
+                            break;
+                        case "NNE": dir = R.drawable.wind_dir_nne;
+                            break;
+                        case "NE": dir = R.drawable.wind_dir_ne;
+                            break;
+                        case "ENE": dir = R.drawable.wind_dir_ene;
+                            break;
+                        case "E": dir = R.drawable.wind_dir_e;
+                            break;
+                        case "ESE": dir = R.drawable.wind_dir_ese;
+                            break;
+                        case "SE": dir = R.drawable.wind_dir_se;
+                            break;
+                        case "SSE": dir = R.drawable.wind_dir_sse;
+                            break;
+                        case "S": dir = R.drawable.wind_dir_s;
+                            break;
+                        case "SSW": dir = R.drawable.wind_dir_ssw;
+                            break;
+                        case "SW": dir = R.drawable.wind_dir_sw;
+                            break;
+                        case "WSW": dir = R.drawable.wind_dir_wsw;
+                            break;
+                        case "W": dir = R.drawable.wind_dir_w;
+                            break;
+                        case "WNW": dir = R.drawable.wind_dir_wnw;
+                            break;
+                        case "NW": dir = R.drawable.wind_dir_nw;
+                            break;
+                        case "NNW": dir = R.drawable.wind_dir_nnw;
+                            break;
+                }
+
+                    mObsImg.setImageResource(dir);
+                    msgSpn = new SpannableStringBuilder(mWindSpd + " km/h");
+                    setFontSizeForPath(msgSpn, " km/h", (int) mObsInfo.getTextSize() - 20);
+
+                    break;
+
+                case 3: msgSpn = new SpannableStringBuilder(mHumidity);
+                    mObsImg.setVisibility(View.VISIBLE);
                     mObsImg.setImageResource(R.drawable.icon_humidity2);
                     break;
 
-                default: msg = "an Error has occurred";
+                default: msgSpn = new SpannableStringBuilder("an Error has occurred");
             }
 
-            mInfo.setText(msg);
+            mInfo.setText(msgSpn);
             mObsInfo.setText(" at "+mTime);
 
             loop++;
@@ -400,6 +448,13 @@ public class InfoFragment extends Fragment {
             return null;
 
         }
+    }
+
+    public static void setFontSizeForPath(Spannable spannable, String path, int fontSizeInPixel) {
+        //source: https://stackoverflow.com/questions/16335178/different-font-size-of-strings-in-the-same-textview
+        int startIndexOfPath = spannable.toString().indexOf(path);
+        spannable.setSpan(new AbsoluteSizeSpan(fontSizeInPixel), startIndexOfPath,
+                startIndexOfPath + path.length(), 0);
     }
 
 
