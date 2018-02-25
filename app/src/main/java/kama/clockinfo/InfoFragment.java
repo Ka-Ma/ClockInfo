@@ -348,7 +348,7 @@ public class InfoFragment extends Fragment {
                 }
 
                 Log.d("myApp", "this is the precis of the first of the forecasts returned " + forecasts.get(0).precis);
-
+                Log.d("myApp", "this is the day of the first of the forecasts returned " + forecasts.get(0).day);
 /*
                 //test read of file
                 FileInputStream inStream = getActivity().openFileInput(filename);
