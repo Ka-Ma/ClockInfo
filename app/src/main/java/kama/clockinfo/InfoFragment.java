@@ -8,6 +8,7 @@ import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.AbsoluteSizeSpan;
 import android.util.Log;
+import android.util.Xml;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,10 +43,13 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import org.apache.commons.net.ftp.FTPClient;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
 
 /**
@@ -325,8 +329,25 @@ public class InfoFragment extends Fragment {
                 //Log.d("myApp", "the local file "+ file.toString());
 
 
-                //TODO parse xml https://developer.android.com/training/basics/network-ops/xml.html  <product xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.7" xsi:noNamespaceSchemaLocation="http://www.bom.gov.au/schema/v1.7/product.xsd"><forecast><area aac="WA_PT053" description="Perth" type="location" parent-aac="WA_PW009">...</area>
+                //TODO parse xml https://developer.android.com/training/basics/network-ops/xml.html
+                //see dropbox bomSample.xml
 
+                FileInputStream in = getActivity().openFileInput(filename);
+                BOMXmlParser bomParser = new BOMXmlParser();
+                List<BOMXmlParser.Forecast> forecasts = null;
+
+                try {
+                    forecasts = bomParser.parse(in);
+
+                } catch (XmlPullParserException e) {
+                    e.printStackTrace();
+                } finally {
+                    if(in != null){
+                        in.close();
+                    }
+                }
+
+/*
                 //test read of file
                 FileInputStream inStream = getActivity().openFileInput(filename);
                 InputStreamReader inputSR = new InputStreamReader(inStream);
@@ -346,7 +367,7 @@ public class InfoFragment extends Fragment {
 
                 Log.d("myApp", "the xml is: "+finalString.toString());
                 //ends test read
-
+*/
                 //file.delete();
                 stream.close();
                 ftpClient.logout();
@@ -455,6 +476,13 @@ public class InfoFragment extends Fragment {
         int startIndexOfPath = spannable.toString().indexOf(path);
         spannable.setSpan(new AbsoluteSizeSpan(fontSizeInPixel), startIndexOfPath,
                 startIndexOfPath + path.length(), 0);
+    }
+
+    private java.lang.Void readFeed(XmlPullParser parser) throws XmlPullParserException, IOException {
+        parser.require(XmlPullParser.START_TAG, null, "area");
+        //TODO finish this.
+
+        return null;
     }
 
 
