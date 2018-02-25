@@ -347,6 +347,8 @@ public class InfoFragment extends Fragment {
                     }
                 }
 
+                Log.d("myApp", "this is the precis of the first of the forecasts returned " + forecasts.get(0).precis);
+
 /*
                 //test read of file
                 FileInputStream inStream = getActivity().openFileInput(filename);

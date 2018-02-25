@@ -43,7 +43,11 @@ public class BOMXmlParser {
                 continue;
             }
             String name = parser.getName();
-            Log.d("myApp", "found " + name);
+            String attrib = null;
+            if (parser.getAttributeCount() != 0){
+                attrib = parser.getAttributeName(0);
+            }
+            Log.d("myApp", "in readFeed: found " + name + " with attrib " + attrib);
             // Starts by looking for the area tag then the identifier for Perth
             if (name.equals("forecast")) {
                 forecasts = (readArea(parser));
@@ -66,9 +70,15 @@ public class BOMXmlParser {
                 continue;
             }
             String name = parser.getName();
-            Log.d("myApp", "name is " + name);
+            String attrib = null;
+            String attribVal = null;
+            if (parser.getAttributeCount() != 0){
+                attrib = parser.getAttributeName(0);
+                attribVal = parser.getAttributeValue(ns, attrib);
+            }
+            Log.d("myApp", "in readArea: found " + name + " with attrib " + attrib + " of value " + attribVal);
             // Starts by looking for the area tag then the identifier for Perth
-            if (name.equals("area")) {//&& parser.getAttributeValue(ns, "acc").equals("WA_PT053")){
+            if (name.equals("area") && parser.getAttributeValue(ns, "aac").equals("WA_PT053")){
             //if ((name.equals("forecast-period") && (parser.getAttributeValue(ns, "index").equals("0") || parser.getAttributeValue(ns, "index").equals("1")))) {
                 forecasts.add(readForecast(parser));
             } else {
@@ -99,7 +109,7 @@ public class BOMXmlParser {
     private Forecast readForecast(XmlPullParser parser) throws XmlPullParserException, IOException{
         Log.d("myApp", "reading forecast");
 
-        parser.require(XmlPullParser.START_TAG, ns, "forecast-period");
+        parser.require(XmlPullParser.START_TAG, ns, "area");
 
         String day = null;
         String min = null;
@@ -112,17 +122,32 @@ public class BOMXmlParser {
                 continue;
             }
             //TODO need to consider how to get this information out of the BOM xml because the "names" are generic and the "type" is what actually identifies the element for some of the fields
-            String name = parser.getAttributeValue(ns, "type");
-           /* if (name.equals("title")) {
-                title = readTitle(parser);
-            } else if (name.equals("summary")) {
-                summary = readSummary(parser);
-            } else if (name.equals("link")) {
-                link = readLink(parser);
+            String name = parser.getName();
+            String attrib = null;
+            String attribVal = null;
+            String value = parser.getText();
+            if (parser.getAttributeCount() != 0){
+                attrib = parser.getAttributeName(0);
+                attribVal = parser.getAttributeValue(ns, attrib);
+            }
+            Log.d("myApp", "in readForecast: found " + name + " with attrib " + attrib + " of value " + attribVal);
+            if (attrib.equals("index") && attribVal.equals("0")) {
+                day = "today";
+            }else if (attrib.equals("index") && attribVal.equals("1")) {
+                day = "tomorrow";
+            }else if (attribVal.equals("precis")){
+                precis = value;
+            }else if (attribVal.equals("probability_of_precipitation")){
+                rainChance = value;
+            }else if (attribVal.equals("air_temperature_minimum")){
+                min = value;
+            }else if (attribVal.equals("air_temperature_maximum")){
+                max = value;
             } else {
                 skip(parser);
-            }*/
-        }
+            }
+        } //TODO this section doesn't seem to be operating as expected
+        Log.d("myApp", "returning forecast");
         return new Forecast(day, min, max, precis, rainChance);
     }
 
@@ -140,9 +165,11 @@ public class BOMXmlParser {
             switch (parser.next()) {
                 case XmlPullParser.END_TAG:
                     depth--;
+//                    Log.d("myApp", "skipping: found end tag, current depth " + depth + " name " + parser.getName());
                     break;
                 case XmlPullParser.START_TAG:
                     depth++;
+//                    Log.d("myApp", "skipping: found start tag, current depth " + depth +  " name " + parser.getName());
                     break;
             }
         }
