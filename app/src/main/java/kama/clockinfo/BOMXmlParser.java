@@ -116,34 +116,43 @@ public class BOMXmlParser {
         String max = null;
         String precis = null;
         String rainChance = null;
+        String code = null;
 
-        while (parser.next() != XmlPullParser.END_TAG) {
-            if (parser.getEventType() != XmlPullParser.START_TAG) {
+        while (parser.next() != XmlPullParser.END_TAG) { //3
+            if (parser.getEventType() != XmlPullParser.START_TAG) { //2
                 continue;
             }
             //TODO need to consider how to get this information out of the BOM xml because the "names" are generic and the "type" is what actually identifies the element for some of the fields
             String name = parser.getName();
             String attrib = null;
             String attribVal = null;
-            String value = parser.getText();
+            String value = null;
+
             if (parser.getAttributeCount() != 0){
                 attrib = parser.getAttributeName(0);
                 attribVal = parser.getAttributeValue(ns, attrib);
             }
-            Log.d("myApp", "in readForecast: found " + name + " with attrib " + attrib + " of value " + attribVal);
+
+            value = parser.getText();
+
+            Log.d("myApp", "in readForecast: found name(" + name + ") with attrib(" + attrib + ") of value (" + attribVal + ") with a tag value("+value+")");
+
             if (attrib.equals("index") && attribVal.equals("0")) {
                 day = "today";
             }else if (attrib.equals("index") && attribVal.equals("1")) {
                 day = "tomorrow";
             }else if (attribVal.equals("precis")){
-                precis = value;
+                precis = readPrecisPrecip(parser);
             }else if (attribVal.equals("probability_of_precipitation")){
-                rainChance = value;
+                rainChance = readPrecisPrecip(parser);
             }else if (attribVal.equals("air_temperature_minimum")){
-                min = value;
-            }else if (attribVal.equals("air_temperature_maximum")){
-                max = value;
+                min = readMinMaxCode(parser);
+            }else if (attribVal.equals("air_temperature_maximum")) {
+                max = readMinMaxCode(parser);
+            }else if (attribVal.equals("forecast_icon_code")){
+                code = readMinMaxCode(parser);
             } else {
+                Log.d("myApp", "in readForecast: didn't find listed tag, found " + name + " " + attrib + "  " + attribVal);
                 skip(parser);
             }
         } //TODO this section doesn't seem to be operating as expected
@@ -151,7 +160,38 @@ public class BOMXmlParser {
         return new Forecast(day, min, max, precis, rainChance);
     }
 
-    //TODO add in the readTAG methods
+    //TODO add in the readTAG methods, check these
+    private String readPrecisPrecip(XmlPullParser parser) throws IOException, XmlPullParserException {
+        parser.require(XmlPullParser.START_TAG, ns, "text");
+        String result = readText(parser);
+        parser.require(XmlPullParser.END_TAG, ns, "text");
+        return result;
+    }
+
+    private String readMinMaxCode(XmlPullParser parser) throws IOException, XmlPullParserException {
+        parser.require(XmlPullParser.START_TAG, ns, "element");
+        String result = readElement(parser);
+        parser.require(XmlPullParser.END_TAG, ns, "element");
+        return result;
+    }
+
+    private String readElement(XmlPullParser parser) throws IOException, XmlPullParserException {
+        String result = "";
+        if (parser.next() == XmlPullParser.COMMENT ) {
+            result = parser.getText();
+            parser.nextTag();
+        }
+        return result;
+    }
+
+    private String readText(XmlPullParser parser) throws IOException, XmlPullParserException {
+        String result = "";
+        if (parser.next() == XmlPullParser.TEXT) {
+            result = parser.getText();
+            parser.nextTag();
+        }
+        return result;
+    }
 
     //skips tags parser not interested in
     private void skip(XmlPullParser parser) throws XmlPullParserException, IOException {
