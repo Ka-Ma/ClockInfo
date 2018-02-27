@@ -63,6 +63,8 @@ public class InfoFragment extends Fragment {
     String locn = "94609";  //defaults to jandakot
     String mTime, mTemp, mCloud, mRainTrace, mHumidity, mWindDir, mWindSpd;
     Integer loop = 0;
+    List<BOMXmlParser.Forecast> forecasts = null;
+
 
     //handler & runnable for getting current observations
     Handler getInfoHandler = new Handler();
@@ -334,7 +336,6 @@ public class InfoFragment extends Fragment {
 
                 FileInputStream in = getActivity().openFileInput(filename);
                 BOMXmlParser bomParser = new BOMXmlParser();
-                List<BOMXmlParser.Forecast> forecasts = null;
 
                 try {
                     forecasts = bomParser.parse(in);

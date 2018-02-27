@@ -50,7 +50,7 @@ public class BOMXmlParser {
             Log.d("myApp", "in readFeed: found " + name + " with attrib " + attrib);
             // Starts by looking for the area tag then the identifier for Perth
             if (name.equals("forecast")) {
-                forecasts = (readArea(parser));
+                forecasts = (readForecast(parser));
             } else {
                 skip(parser);
             }
@@ -58,9 +58,8 @@ public class BOMXmlParser {
         return forecasts;
     }
 
-    //TODO need a readArea which then readForecast for the first two only
-    private List<Forecast> readArea(XmlPullParser parser) throws XmlPullParserException, IOException {
-        Log.d("myApp", "reading area");
+    private List<Forecast> readForecast(XmlPullParser parser) throws XmlPullParserException, IOException {
+        Log.d("myApp", "reading forecast");
 
         List<Forecast> forecasts = new ArrayList<Forecast>();
 
@@ -76,13 +75,50 @@ public class BOMXmlParser {
                 attrib = parser.getAttributeName(0);
                 attribVal = parser.getAttributeValue(ns, attrib);
             }
-            Log.d("myApp", "in readArea: found " + name + " with attrib " + attrib + " of value " + attribVal);
+            Log.d("myApp", "in readForecast: found " + name + " with attrib " + attrib + " of value " + attribVal);
             // Starts by looking for the area tag then the identifier for Perth
             if (name.equals("area") && parser.getAttributeValue(ns, "aac").equals("WA_PT053")){
-                forecasts = readForecast(parser);
+                forecasts = readArea(parser);
             } else {
                 skip(parser);
             }
+        }
+        return forecasts;
+    }
+
+    private List<Forecast> readArea(XmlPullParser parser) throws XmlPullParserException, IOException {
+        Log.d("myApp", "reading area");
+
+        List<Forecast> forecasts = new ArrayList<Forecast>();
+
+        parser.require(XmlPullParser.START_TAG, ns, "area");
+        while (parser.next() != XmlPullParser.END_TAG) {
+            if (parser.getEventType() != XmlPullParser.START_TAG) {
+                continue;
+            }
+            String name = parser.getName();
+            String attrib = null;
+            String attribVal = null;
+            if (parser.getAttributeCount() != 0){
+                attrib = parser.getAttributeName(0);
+                attribVal = parser.getAttributeValue(ns, attrib);
+            }
+
+            Log.d("myApp", "in readArea: found " + name + " with attrib " + attrib + " of value " + attribVal);
+
+            String day = null;
+            if (attrib.equals("index") && attribVal.equals("0")) {
+                day = "today";
+            } else if (attrib.equals("index") && attribVal.equals("1")) {
+                day = "tomorrow";
+            } else {
+                skip(parser);
+            }
+
+            if (day != null){
+                forecasts.add(readPeriod(parser, day));
+            }
+
         }
         return forecasts;
     }
@@ -106,85 +142,64 @@ public class BOMXmlParser {
     }
 
     //parse the content of forecast
-    private List<Forecast> readForecast(XmlPullParser parser) throws XmlPullParserException, IOException{
-        Log.d("myApp", "reading forecast");
+    private Forecast readPeriod(XmlPullParser parser, String d) throws XmlPullParserException, IOException{
+        Log.d("myApp", "reading period");
 
-        List<Forecast> forecasts = new ArrayList<Forecast>();
+        parser.require(XmlPullParser.START_TAG, ns, "forecast-period");
 
-        parser.require(XmlPullParser.START_TAG, ns, "area");
-        // parser.require(XmlPullParser.END_TAG, ns, "area"); // this line breaks it
-
-        String day = null;
+        String day = d;
         String min = null;
         String max = null;
         String precis = null;
         String rainChance = null;
         String code = null;
 
-        //TODO this while loop exits early. should do whole area tag but doesn't.
-        int depth = parser.getDepth();
-        Log.d("myApp", "in readForecast: depth is " + depth);
-        while (parser.getDepth() >= depth) {
-            while (parser.next() != XmlPullParser.END_TAG) { //3
-                if (parser.getEventType() != XmlPullParser.START_TAG) { //2
-                    continue;
-                }
-                //TODO need to consider how to get this information out of the BOM xml because the "names" are generic and the "type" is what actually identifies the element for some of the fields
-                String name = parser.getName();
-                String attrib = null;
-                String attribVal = null;
-                String value = null;
+        while (parser.next() != XmlPullParser.END_TAG) { //3
+            if (parser.getEventType() != XmlPullParser.START_TAG) { //2
+                continue;
+            }
+            //TODO need to consider how to get this information out of the BOM xml because the "names" are generic and the "type" is what actually identifies the element for some of the fields
+            String name = parser.getName();
+            String attrib = null;
+            String attribVal = null;
+            String value = null;
 
-                if (parser.getAttributeCount() != 0) {
-                    attrib = parser.getAttributeName(0);
-                    attribVal = parser.getAttributeValue(ns, attrib);
-                }
+            if (parser.getAttributeCount() != 0) {
+                attrib = parser.getAttributeName(0);
+                attribVal = parser.getAttributeValue(ns, attrib);
+            }
 
-                value = parser.getText();
+            value = parser.getText();
 
-                Log.d("myApp", "in readForecast: found name(" + name + ") with attrib(" + attrib + ") of value (" + attribVal + ") with a tag value(" + value + ")");
+            Log.d("myApp", "in readPeriod: found name(" + name + ") with attrib(" + attrib + ") of value (" + attribVal + ") with a tag value(" + value + ")");
 
-                if (attrib.equals("index") && attribVal.equals("0")) {
-                    day = "today";
-                } else if (attrib.equals("index") && attribVal.equals("1")) {
-                    day = "tomorrow";
-                } else if ((attrib.equals("index")) && (!attribVal.equals("0") || !attribVal.equals("1"))) {
-                    Log.d("myApp", "attrib is " + attrib + " (should be index) = " + attribVal + " which is not 0 or 1");
-                    skip(parser);
-                } else if (attribVal.equals("precis")) {
-                    precis = readPrecisPrecip(parser);
-                } else if (attribVal.equals("probability_of_precipitation")) {
-                    rainChance = readPrecisPrecip(parser);
-                } else if (attribVal.equals("air_temperature_minimum")) {
-                    min = readMinMaxCode(parser);
-                } else if (attribVal.equals("air_temperature_maximum")) {
-                    max = readMinMaxCode(parser);
-                } else if (attribVal.equals("forecast_icon_code")) {
-                    code = readMinMaxCode(parser);
-                } else {
-                    Log.d("myApp", "in readForecast: didn't find listed tag, found " + name + " " + attrib + "  " + attribVal);
-                    skip(parser);
-                }
-
-                //reset
-                name = attrib = attribVal = value = null;
-
-
-            } //end while
-            Log.d("myApp", "after loop depth is " + parser.getDepth());
-
-            forecasts.add(new Forecast(day, min, max, precis, rainChance));
+            if (attrib.equals("index") && attribVal.equals("0")) {
+                day = "today";
+            } else if (attrib.equals("index") && attribVal.equals("1")) {
+                day = "tomorrow";
+            } else if ((attrib.equals("index")) && (!attribVal.equals("0") || !attribVal.equals("1"))) {
+                Log.d("myApp", "attrib is " + attrib + " (should be index) = " + attribVal + " which is not 0 or 1");
+                skip(parser);
+            } else if (attribVal.equals("precis")) {
+                precis = readPrecisPrecip(parser);
+            } else if (attribVal.equals("probability_of_precipitation")) {
+                rainChance = readPrecisPrecip(parser);
+            } else if (attribVal.equals("air_temperature_minimum")) {
+                min = readMinMaxCode(parser);
+            } else if (attribVal.equals("air_temperature_maximum")) {
+                max = readMinMaxCode(parser);
+            } else if (attribVal.equals("forecast_icon_code")) {
+                code = readMinMaxCode(parser);
+            } else {
+                Log.d("myApp", "in readPeriod: didn't find listed tag, found " + name + " " + attrib + "  " + attribVal);
+                skip(parser);
+            }
 
             //reset
-            day = min = max = precis = rainChance = code = null;
+            name = attrib = attribVal = value = null;
+        } // end while
 
-        } // end while (depth test)
-
-        Log.d("myApp", "returning forecast (size " + forecasts.size() + ")");
-        for (int i = 0; i<forecasts.size(); i++){
-            Log.d("myApp", i + ": " + forecasts.get(i).day + forecasts.get(i).rainChance + forecasts.get(i).precis + forecasts.get(i).min + forecasts.get(i).max);
-        }
-        return forecasts;
+        return new Forecast(day, min, max, precis, rainChance);
     }
 
     //TODO add in the readTAG methods, check these
