@@ -58,10 +58,10 @@ import org.xmlpull.v1.XmlPullParserException;
 
 public class InfoFragment extends Fragment {
 
-    TextView mInfo, mObsInfo;
-    ImageView mObsImg;
+    TextView mInfo, mObsInfo, mTomInfo, mTomObsInfo;
+    ImageView mObsImg, mTomImg;
     String locn = "94609";  //defaults to jandakot
-    String mTime, mTemp, mCloud, mRainTrace, mHumidity, mWindDir, mWindSpd;
+    String mTime, mTemp, mCloud, mRainTrace, mHumidity, mWindDir, mWindSpd, mTomMin, mTomMax, MTomSky;
     Integer loop = 0;
     List<BOMXmlParser.Forecast> forecasts = null;
 
@@ -92,7 +92,26 @@ public class InfoFragment extends Fragment {
             long ms = GetTimes.tilTomorrow();
 
             getForecastHandler.postDelayed(this, ms);
+        }
+    };
 
+    //handler & runnable for displaying tomorrows precis
+    Handler setForecastHandler = new Handler();
+    Runnable setForecastRunnable = new Runnable() {
+        @Override
+        public void run(){
+
+            if(forecasts == null){
+                Log.d("myApp", "forecasts is null");
+                setForecastHandler.postDelayed(this, 10000);
+            }else{
+                Log.d("myApp", "forecasts is not null");
+                updateForecast();
+
+                long ms = GetTimes.tilTomorrow();
+
+                setForecastHandler.postDelayed(this, ms);
+            }
         }
     };
 
@@ -110,11 +129,16 @@ public class InfoFragment extends Fragment {
             //TODO want to add icons to reduce footprint of info (need to adjust images to be 200px & the right colour)
 
             switch (loop){
-                case 0: msgSpn = new SpannableStringBuilder(mTemp+(char) 0x00B0+"C");
+                case 0:
+                    if(forecasts == null || forecasts.get(0).max == null){
+                        msgSpn = new SpannableStringBuilder(mTemp + (char) 0x00B0 + "C");
+                    }else{
+                        msgSpn = new SpannableStringBuilder(mTemp + (char) 0x00B0 + "C/" + forecasts.get(0).max + (char) 0x00B0+"C");
+                    }
                     mObsImg.setVisibility(View.GONE);
                     break;
 
-                case 1: //TODO change this so the appropriate weather graphic shows
+                case 1: //TODO change this so the appropriate weather graphic shows, there are time appropriate ones
 
                     mObsImg.setVisibility(View.VISIBLE);
 
@@ -137,8 +161,8 @@ public class InfoFragment extends Fragment {
                     }
 
                     if((mCloud.equals("-"))&&(mRainTrace.equals("0.0"))){
-                        msgSpn = new SpannableStringBuilder(("no rainfall"));
-                        setFontSizeForPath(msgSpn, "no rainfall", (int) mObsInfo.getTextSize() - 10);
+                        msgSpn = new SpannableStringBuilder(("No Rain"));
+                        setFontSizeForPath(msgSpn, "No Rain", (int) mObsInfo.getTextSize() - 5);
                     }
 
                     break;
@@ -240,11 +264,15 @@ public class InfoFragment extends Fragment {
         mInfo = v.findViewById(R.id.info);
         mObsInfo = v.findViewById(R.id.obsInfo);
         mObsImg = v.findViewById(R.id.infoImage);
+        mTomInfo = v.findViewById(R.id.tomorrowInfo);
+        mTomObsInfo = v.findViewById(R.id.tomorrowObsInfo);
+        mTomImg = v.findViewById(R.id.tomorrowInfoImage);
 
         //Handlers for timed events
         getInfoHandler.postDelayed(getInfoRunnable, 0);
         getForecastHandler.postDelayed(getForecastRunnable, 0);
         setInfoHandler.postDelayed(setInfoRunnable, 10000);
+        setForecastHandler.postDelayed(setForecastRunnable, 10000);
 
     }
 
@@ -387,7 +415,6 @@ public class InfoFragment extends Fragment {
                 Log.e("myApp", "boom " + e1);
             }
 
-
             return null;
 
         }
@@ -481,12 +508,15 @@ public class InfoFragment extends Fragment {
                 startIndexOfPath + path.length(), 0);
     }
 
-    private java.lang.Void readFeed(XmlPullParser parser) throws XmlPullParserException, IOException {
-        parser.require(XmlPullParser.START_TAG, null, "area");
-        //TODO finish this.
+    public void updateForecast(){
+        //TODO cycle through the data: min/max, chance of rain, precis
+        mTomObsInfo.setText(forecasts.get(1).day);
 
-        return null;
+        String msg = "empty";
+
+        msg = forecasts.get(1).min + "/" + forecasts.get(1).max + " " + forecasts.get(1).rainChance;
+
+        mTomInfo.setText(msg);
     }
-
 
 }
