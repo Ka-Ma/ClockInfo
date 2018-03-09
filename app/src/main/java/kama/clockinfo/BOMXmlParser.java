@@ -47,7 +47,7 @@ public class BOMXmlParser {
             if (parser.getAttributeCount() != 0){
                 attrib = parser.getAttributeName(0);
             }
-            Log.d("myApp", "in readFeed: found " + name + " with attrib " + attrib);
+//            Log.d("myApp", "in readFeed: found " + name + " with attrib " + attrib);
             // Starts by looking for the area tag then the identifier for Perth
             if (name.equals("forecast")) {
                 forecasts = (readForecast(parser));
@@ -75,7 +75,7 @@ public class BOMXmlParser {
                 attrib = parser.getAttributeName(0);
                 attribVal = parser.getAttributeValue(ns, attrib);
             }
-            Log.d("myApp", "in readForecast: found " + name + " with attrib " + attrib + " of value " + attribVal);
+//            Log.d("myApp", "in readForecast: found " + name + " with attrib " + attrib + " of value " + attribVal);
             // Starts by looking for the area tag then the identifier for Perth
             if (name.equals("area") && parser.getAttributeValue(ns, "aac").equals("WA_PT053")){
                 forecasts = readArea(parser);
@@ -104,7 +104,7 @@ public class BOMXmlParser {
                 attribVal = parser.getAttributeValue(ns, attrib);
             }
 
-            Log.d("myApp", "in readArea: found " + name + " with attrib " + attrib + " of value " + attribVal);
+//            Log.d("myApp", "in readArea: found " + name + " with attrib " + attrib + " of value " + attribVal);
 
             String day = null;
             if (attrib.equals("index") && attribVal.equals("0")) {
@@ -171,7 +171,7 @@ public class BOMXmlParser {
 
             value = parser.getText();
 
-            Log.d("myApp", "in readPeriod: found name(" + name + ") with attrib(" + attrib + ") of value (" + attribVal + ") with a tag value(" + value + ")");
+//            Log.d("myApp", "in readPeriod: found name(" + name + ") with attrib(" + attrib + ") of value (" + attribVal + ") with a tag value(" + value + ")");
 
             if (attrib.equals("index") && attribVal.equals("0")) {
                 day = "today";
@@ -191,7 +191,7 @@ public class BOMXmlParser {
             } else if (attribVal.equals("forecast_icon_code")) {
                 code = readMinMaxCode(parser);
             } else {
-                Log.d("myApp", "in readPeriod: didn't find listed tag, found " + name + " " + attrib + "  " + attribVal);
+//                Log.d("myApp", "in readPeriod: didn't find listed tag, found " + name + " " + attrib + "  " + attribVal);
                 skip(parser);
             }
 
@@ -237,7 +237,7 @@ public class BOMXmlParser {
 
     //skips tags parser not interested in
     private void skip(XmlPullParser parser) throws XmlPullParserException, IOException {
-        Log.d("myApp", "skipping a tag");
+//        Log.d("myApp", "skipping a tag");
 
         if (parser.getEventType() != XmlPullParser.START_TAG) {
             throw new IllegalStateException();

@@ -91,6 +91,8 @@ public class InfoFragment extends Fragment {
 
             long ms = GetTimes.tilTomorrow();
 
+            Log.d("myApp", "there are " + ms + " milliseconds until tomorrow");
+
             getForecastHandler.postDelayed(this, ms);
         }
     };
@@ -110,7 +112,9 @@ public class InfoFragment extends Fragment {
 
                 long ms = GetTimes.tilTomorrow();
 
-                setForecastHandler.postDelayed(this, ms);
+                Log.d("myApp", "there are " + (ms + 60000) + " milliseconds until tomorrow to display");
+
+                setForecastHandler.postDelayed(this, ms + 60000);
             }
         }
     };
