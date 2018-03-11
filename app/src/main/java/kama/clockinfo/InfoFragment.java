@@ -8,7 +8,6 @@ import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.AbsoluteSizeSpan;
 import android.util.Log;
-import android.util.Xml;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,35 +19,22 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 
 import java.net.HttpURLConnection;
-import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.SocketException;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import org.apache.commons.net.ftp.FTPClient;
-import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 
@@ -61,8 +47,9 @@ public class InfoFragment extends Fragment {
     TextView mInfo, mObsInfo, mTomInfo, mTomObsInfo;
     ImageView mObsImg, mTomImg;
     String locn = "94609";  //defaults to jandakot
-    String mTime, mTemp, mCloud, mRainTrace, mHumidity, mWindDir, mWindSpd, mTomMin, mTomMax, MTomSky;
-    Integer loop = 0;
+    String mTime, mTemp, mCloud, mRainTrace, mHumidity, mWindDir, mWindSpd;
+    Integer loopI = 0;
+    Integer loopF = 0;
     List<BOMXmlParser.Forecast> forecasts = null;
 
 
@@ -73,6 +60,8 @@ public class InfoFragment extends Fragment {
         public void run(){
 
             new getInfo().execute();
+
+            //TODO this schedule seems unreliable, if the time is not close to the scheduled time it should check more frequently until it is updated.
 
             long ms = GetTimes.tilNext();
 
@@ -86,12 +75,20 @@ public class InfoFragment extends Fragment {
     Runnable getForecastRunnable = new Runnable() {
         @Override
         public void run(){
+            //reset forecasts so display works as expected
+            forecasts = null;
 
             new getTomorrow().execute();
 
-            long ms = GetTimes.tilTomorrow();
+            //TODO this information is updated on a fairly regular schedule, need to work out the best way to deal with that (4:40am, 10:32am, 4:20pm)
+            // convert to 24 hr time?
+            // if current time > 4:40am && < 10:32am, set ms for 10:32am
+            // else if current time < 4:20pm, set ms for 4:20pm
+            // else set ms for 4:40am tomorrow
 
-            Log.d("myApp", "there are " + ms + " milliseconds until tomorrow");
+            long ms = GetTimes.tilGivenTime(GetTimes.setDateTime(GetTimes.getTomorrow() +" 04:40 AM"));
+
+            Log.d("myApp", "there are " + ms + " milliseconds until tomorrow 4:40am");
 
             getForecastHandler.postDelayed(this, ms);
         }
@@ -104,17 +101,60 @@ public class InfoFragment extends Fragment {
         public void run(){
 
             if(forecasts == null){
-                Log.d("myApp", "forecasts is null");
+                Log.d("myApp", "forecasts is null, wait a bit");
                 setForecastHandler.postDelayed(this, 10000);
             }else{
-                Log.d("myApp", "forecasts is not null");
-                updateForecast();
+                Log.d("myApp", "forecasts is not null, can display");
 
-                long ms = GetTimes.tilTomorrow();
+                mTomObsInfo.setText(forecasts.get(1).day);
 
-                Log.d("myApp", "there are " + (ms + 60000) + " milliseconds until tomorrow to display");
+                String msg = "";
+                mTomInfo.setVisibility(View.VISIBLE);
+                mTomImg.setVisibility(View.INVISIBLE);
+                mTomImg.setImageResource(0);
 
-                setForecastHandler.postDelayed(this, ms + 60000);
+                switch (loopF){
+                    case 0:
+                        msg = forecasts.get(1).min + "/" + forecasts.get(1).max;
+                        break;
+
+                    case 1:
+                        mTomImg.setVisibility(View.VISIBLE);
+
+                        //TODO check all cases accounted for (ergh punctuation)
+                        switch(forecasts.get(1).precis){
+                            case "-": mTomImg.setVisibility(View.GONE);
+                                break;
+                            case "Clear.": mTomImg.setImageResource(R.drawable.clear);
+                                break;
+                            case "Cloudy.": mTomImg.setImageResource(R.drawable.cloudy);
+                                break;
+                            case "Partly cloudy.":mTomImg.setImageResource(R.drawable.partly_cloudy);
+                                break;
+                            case "Mostly cloudy.":mTomImg.setImageResource(R.drawable.cloudy);
+                                break;
+                            case "Mostly sunny.":mTomImg.setImageResource(R.drawable.partly_cloudy);
+                                break;
+                            default: msg = forecasts.get(1).precis + " ";
+                        }
+                        mTomInfo.setVisibility(View.INVISIBLE);
+                        break;
+
+                    case 2:
+                        mTomImg.setVisibility(View.VISIBLE);
+                        mTomImg.setImageResource(R.drawable.rain);
+                        msg = forecasts.get(1).rainChance;
+                        break;
+
+                    default: msg = "an Error has occurred";
+                }
+
+                loopF++;
+                if(loopF>2){loopF=0;}
+
+                mTomInfo.setText(msg);
+
+                setForecastHandler.postDelayed(this, 5000);  //update display every 5 secs
             }
         }
     };
@@ -129,15 +169,13 @@ public class InfoFragment extends Fragment {
             mObsImg.setMaxHeight(200);
             mObsImg.setMaxWidth(200);
 
-
-            //TODO want to add icons to reduce footprint of info (need to adjust images to be 200px & the right colour)
-
-            switch (loop){
+            switch (loopI){
                 case 0:
                     if(forecasts == null || forecasts.get(0).max == null){
                         msgSpn = new SpannableStringBuilder(mTemp + (char) 0x00B0 + "C");
                     }else{
                         msgSpn = new SpannableStringBuilder(mTemp + (char) 0x00B0 + "C/" + forecasts.get(0).max + (char) 0x00B0+"C");
+                        setFontSizeForPath(msgSpn, forecasts.get(0).max + (char) 0x00B0+"C", (int) mObsInfo.getTextSize() - 10);
                     }
                     mObsImg.setVisibility(View.GONE);
                     break;
@@ -227,8 +265,8 @@ public class InfoFragment extends Fragment {
             mInfo.setText(msgSpn);
             mObsInfo.setText(" at "+mTime);
 
-            loop++;
-            if(loop>3){loop=0;}
+            loopI++;
+            if(loopI>3){loopI=0;}
 
             setInfoHandler.postDelayed(this, 5000); //5 secs
         }
@@ -306,65 +344,22 @@ public class InfoFragment extends Fragment {
     private class getTomorrow extends AsyncTask<Void,Void,Void>{
         @Override
         protected Void doInBackground(Void... params){
-            //TODO getting tomorrows info needs to be finished http://commons.apache.org/proper/commons-net/javadocs/api-3.6/index.html
             Log.d("myApp", "getting tomorrows forecast");
 
-            String xmlString = "";
-
             FTPClient ftpClient = new FTPClient();
-            FileOutputStream stream = null;
 
             try{
                 ftpClient.connect("ftp.bom.gov.au");
 
-                //Log.d("myApp", "connected? " + ftpClient.getReplyString());
-                Log.d("myApp", "connected? " + ftpClient.getReplyCode());
-
                 //login
                 Log.d("myApp", "it logged in " + ftpClient.login("Anonymous", "Guest"));
-
-                Log.d("myApp", "logged in? " + ftpClient.getReplyString());
-                //Log.d("myApp", "logged in? " + ftpClient.getReplyCode());
 
                 //change directory
                 Log.d("myApp", "it changed dir "+ ftpClient.changeWorkingDirectory("/anon/gen/fwo"));
 
-                Log.d("myApp", "pwd is " + ftpClient.printWorkingDirectory() );
-                Log.d("myApp", "list of files ");
-
-                FTPFile[] rah = ftpClient.listFiles();
-
-                Log.d("myApp", "there are "+rah.length+" files");
-                /*
-                for(int i = 0; i<rah.length; i++){
-                    Log.d("myApp", rah[i].getName());
-                }
-                */
-
-                //download file
                 String filename = "IDW14199.xml";
-                Log.d("myApp", "file is " + filename);
 
-                File fileDir = getActivity().getFilesDir();
-
-                File file = new File(fileDir, filename);
-                Log.d("myApp", "setting writable "+file.setWritable(true));
-                Log.d("myApp", "writable? "+file.canWrite());
-                stream = new FileOutputStream(file);
-
-                Log.d("myApp", "retrieving file");
                 ftpClient.enterLocalPassiveMode();
-               // Log.d("myApp", "status "+ftpClient.getStatus());
-               // Log.d("myApp", "reply code "+ftpClient.getReplyCode());
-                Log.d("myApp", "did it retrieve the file? "+ftpClient.retrieveFile(filename, stream));
-               // Log.d("myApp", "reply code "+ftpClient.getReplyCode());
-               // Log.d("myApp", "status "+ftpClient.getStatus());
-
-                //Log.d("myApp", "the local file "+ file.toString());
-
-
-                //TODO parse xml https://developer.android.com/training/basics/network-ops/xml.html
-                //see dropbox bomSample.xml
 
                 FileInputStream in = getActivity().openFileInput(filename);
                 BOMXmlParser bomParser = new BOMXmlParser();
@@ -380,31 +375,6 @@ public class InfoFragment extends Fragment {
                     }
                 }
 
-                Log.d("myApp", "this is the precis of the first of the forecasts returned " + forecasts.get(0).precis);
-                Log.d("myApp", "this is the day of the first of the forecasts returned " + forecasts.get(0).day);
-/*
-                //test read of file
-                FileInputStream inStream = getActivity().openFileInput(filename);
-                InputStreamReader inputSR = new InputStreamReader(inStream);
-                BufferedReader buffRead = new BufferedReader(inputSR);
-
-                StringBuilder finalString = new StringBuilder();
-                String oneline;
-
-                while((oneline = buffRead.readLine())!=null){
-                    //Log.d("myApp", oneline);
-                    finalString.append(oneline);
-                }
-
-                buffRead.close();
-                inStream.close();
-                inputSR.close();
-
-                Log.d("myApp", "the xml is: "+finalString.toString());
-                //ends test read
-*/
-                //file.delete();
-                stream.close();
                 ftpClient.logout();
                 ftpClient.disconnect();
 
@@ -510,17 +480,6 @@ public class InfoFragment extends Fragment {
         int startIndexOfPath = spannable.toString().indexOf(path);
         spannable.setSpan(new AbsoluteSizeSpan(fontSizeInPixel), startIndexOfPath,
                 startIndexOfPath + path.length(), 0);
-    }
-
-    public void updateForecast(){
-        //TODO cycle through the data: min/max, chance of rain, precis
-        mTomObsInfo.setText(forecasts.get(1).day);
-
-        String msg = "empty";
-
-        msg = forecasts.get(1).min + "/" + forecasts.get(1).max + " " + forecasts.get(1).rainChance;
-
-        mTomInfo.setText(msg);
     }
 
 }

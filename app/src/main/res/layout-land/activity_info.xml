@@ -22,8 +22,6 @@
         android:layout_alignTop="@id/infoImage"
         />
 
-
-
     <TextView
         android:id="@+id/obsInfo"
         android:layout_width="wrap_content"
@@ -34,31 +32,33 @@
         />
 
     <TextView
-        android:id="@+id/tomorrowInfo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="##"
-        android:textSize="120sp"
-        android:layout_alignParentRight="true"
-
-        />
-
-        <ImageView
-        android:id="@+id/tomorrowInfoImage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toLeftOf="@id/tomorrowInfo"/>
-
-
-
-    <TextView
         android:id="@+id/tomorrowObsInfo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="40sp"
         android:text="Latest Loading..."
-        android:layout_below="@id/tomorrowInfo"
         android:layout_alignParentRight="true"
         />
+
+    <ImageView
+        android:id="@+id/tomorrowInfoImage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@id/tomorrowObsInfo"
+        />
+
+    <TextView
+        android:id="@+id/tomorrowInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="##"
+        android:layout_toLeftOf="@id/tomorrowInfoImage"
+        android:layout_below="@id/tomorrowObsInfo"
+        android:textSize="120sp"
+
+        />
+
+
 
 </RelativeLayout>

@@ -3,6 +3,7 @@ package kama.clockinfo;
 import android.util.Log;
 
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -72,4 +73,56 @@ public class GetTimes {
 
         return ms;
     }
+
+    public static long tilGivenTime(Date givenTime){
+        long ms, start, end;
+
+        //TODO find ms til given date/time. needs testing
+
+        Log.d("myApp", "finding ms to given time");
+
+        Date date = new Date();
+        start = date.getTime();
+        end = givenTime.getTime();
+        ms = end-start;
+
+        Log.d("myApp", "start = "+start);
+        Log.d("myApp", "end = "+end);
+        Log.d("myApp", "diff = "+ms);
+
+        return ms;
+    }
+
+    /**
+     * returns a Date object given a string in the format of d/M/yyyy h:m a
+     * eg: 10/03/2018 04:40 AM
+     * **/
+    public static Date setDateTime(String given){
+        Date date = null;
+
+        SimpleDateFormat ft = new SimpleDateFormat("d/M/yyyy h:m a");
+
+        try{
+            date = ft.parse(given);
+        }catch (ParseException e){
+            Log.e("myApp", "Can't parse this with " + ft);
+        }
+
+        return date;
+    }
+
+    /** returns string of tomorrows date**/
+    public static String getTomorrow(){
+        String date;
+        Date today = new Date();
+        Date tomorrow = new Date(today.getTime()+(24 * 60 * 60 * 1000));
+
+        SimpleDateFormat ft = new SimpleDateFormat("d/M/yyyy");
+        date = ft.format(tomorrow);
+
+        Log.d("myApp", "according to my calculations, tomorrow is " + date);
+
+        return date;
+    }
+
 }

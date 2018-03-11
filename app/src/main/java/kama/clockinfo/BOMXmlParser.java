@@ -130,7 +130,7 @@ public class BOMXmlParser {
         public final String max;
         public final String precis;
         public final String rainChance;
-        //TODO add code?
+        //TODO add image code?
 
         private Forecast(String day, String min, String max, String precis, String rainChance){
             this.day = day;
@@ -158,7 +158,7 @@ public class BOMXmlParser {
             if (parser.getEventType() != XmlPullParser.START_TAG) { //2
                 continue;
             }
-            //TODO need to consider how to get this information out of the BOM xml because the "names" are generic and the "type" is what actually identifies the element for some of the fields
+
             String name = parser.getName();
             String attrib = null;
             String attribVal = null;
@@ -202,7 +202,6 @@ public class BOMXmlParser {
         return new Forecast(day, min, max, precis, rainChance);
     }
 
-    //TODO add in the readTAG methods, check these
     private String readPrecisPrecip(XmlPullParser parser) throws IOException, XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, ns, "text");
         String result = readText(parser);
