@@ -25,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
         decorView.setSystemUiVisibility(uiOptions);
         // Remember that you should never show the action bar if the
         // status bar is hidden, so hide that too if necessary.
+        //TODO fix uncommenting the following crashes app
         //ActionBar actionBar = getActionBar();
         //actionBar.hide();
 
@@ -53,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
     public void onResume(){
         super.onResume();
 
-        Log.d("myApp", "resuming main activity");
+        Logging.toFile(getApplicationContext(), "resuming main activity");
 
         mHelpBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){

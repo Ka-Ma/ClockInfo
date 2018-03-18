@@ -46,10 +46,11 @@ public class InfoFragment extends Fragment {
 
     TextView mInfo, mObsInfo, mTomInfo, mTomObsInfo;
     ImageView mObsImg, mTomImg;
-    String locn = "94609";  //defaults to jandakot
+    String locn = "94609";  //defaults to jandakot for observations
     String mTime, mTemp, mCloud, mRainTrace, mHumidity, mWindDir, mWindSpd;
     Integer loopI = 0;
     Integer loopF = 0;
+    Integer updateSpeed = 5000; //defaults to 5 seconds, ideally slower at night
     List<BOMXmlParser.Forecast> forecasts = null;
 
 
@@ -86,9 +87,10 @@ public class InfoFragment extends Fragment {
             // else if current time < 4:20pm, set ms for 4:20pm
             // else set ms for 4:40am tomorrow
 
-            long ms = GetTimes.tilGivenTime(GetTimes.setDateTime(GetTimes.getTomorrow() +" 04:40 AM"));
+            long ms = GetTimes.tilGivenTime(GetTimes.setDateTime(GetTimes.getTomorrow() +" 04:50 AM")); //4:40am plus a few otherwise have been missing it
 
-            Log.d("myApp", "there are " + ms + " milliseconds until tomorrow 4:40am");
+//            Log.d("myApp", "there are " + ms + " milliseconds until tomorrow 4:40am");
+//            Log.d("myApp", "there are " + (ms/1000/60/60) + " hours until tomorrow 4:40am" );
 
             getForecastHandler.postDelayed(this, ms);
         }
@@ -104,13 +106,15 @@ public class InfoFragment extends Fragment {
                 Log.d("myApp", "forecasts is null, wait a bit");
                 setForecastHandler.postDelayed(this, 10000);
             }else{
-                Log.d("myApp", "forecasts is not null, can display");
+         //       Log.d("myApp", "forecasts is not null, can display");
 
-                mTomObsInfo.setText(forecasts.get(1).day);
+                mTomObsInfo.setText(forecasts.get(1).day + " ("+forecasts.get(1).date+")");
 
                 String msg = "";
                 mTomInfo.setVisibility(View.VISIBLE);
                 mTomImg.setVisibility(View.INVISIBLE);
+                mTomImg.setMaxHeight(180);
+                mTomImg.setMaxWidth(180);
                 mTomImg.setImageResource(0);
 
                 switch (loopF){
@@ -121,21 +125,61 @@ public class InfoFragment extends Fragment {
                     case 1:
                         mTomImg.setVisibility(View.VISIBLE);
 
-                        //TODO check all cases accounted for (ergh punctuation)
-                        switch(forecasts.get(1).precis){
-                            case "-": mTomImg.setVisibility(View.GONE);
+                        switch(forecasts.get(1).code){
+                            case "1":
+                                mTomImg.setImageResource(R.drawable.sunny);
                                 break;
-                            case "Clear.": mTomImg.setImageResource(R.drawable.clear);
+                            case "2":
+                                mTomImg.setImageResource(R.drawable.clear);
                                 break;
-                            case "Cloudy.": mTomImg.setImageResource(R.drawable.cloudy);
+                            case "3":
+                                mTomImg.setImageResource(R.drawable.partly_cloudy);
                                 break;
-                            case "Partly cloudy.":mTomImg.setImageResource(R.drawable.partly_cloudy);
+                            case "4":
+                                mTomImg.setImageResource(R.drawable.cloudy);
                                 break;
-                            case "Mostly cloudy.":mTomImg.setImageResource(R.drawable.cloudy);
+                            case "6":
+                                mTomImg.setImageResource(R.drawable.haze);
                                 break;
-                            case "Mostly sunny.":mTomImg.setImageResource(R.drawable.partly_cloudy);
+                            case "8":
+                                mTomImg.setImageResource(R.drawable.light_rain);
                                 break;
-                            default: msg = forecasts.get(1).precis + " ";
+                            case "9":
+                                mTomImg.setImageResource(R.drawable.wind);
+                                break;
+                            case "10":
+                                mTomImg.setImageResource(R.drawable.fog);
+                                break;
+                            case "11":
+                                mTomImg.setImageResource(R.drawable.showers);
+                                break;
+                            case "12":
+                                mTomImg.setImageResource(R.drawable.rain);
+                                break;
+                            case "13":
+                                mTomImg.setImageResource(R.drawable.dust);
+                                break;
+                            case "14":
+                                mTomImg.setImageResource(R.drawable.frost);
+                                break;
+                            case "15":
+                                mTomImg.setImageResource(R.drawable.snow);
+                                break;
+                            case "16":
+                                mTomImg.setImageResource(R.drawable.storm);
+                                break;
+                            case "17":
+                                mTomImg.setImageResource(R.drawable.light_showers);
+                                break;
+                            case "18":
+                                mTomImg.setImageResource(R.drawable.heavy_showers);
+                                break;
+                            case "19":
+                                mTomImg.setImageResource(R.drawable.tropicalcyclone);
+                                break;
+                            default:
+                                mTomImg.setVisibility(View.GONE);
+                                msg = forecasts.get(1).precis + " ";
                         }
                         mTomInfo.setVisibility(View.INVISIBLE);
                         break;
@@ -154,7 +198,7 @@ public class InfoFragment extends Fragment {
 
                 mTomInfo.setText(msg);
 
-                setForecastHandler.postDelayed(this, 5000);  //update display every 5 secs
+                setForecastHandler.postDelayed(this, updateSpeed);  //TODO make this dependent on time of day (default update display every 5 secs)
             }
         }
     };
@@ -166,8 +210,8 @@ public class InfoFragment extends Fragment {
         public void run(){
             Spannable msgSpn = new SpannableStringBuilder();
             mObsImg.setAdjustViewBounds(true);
-            mObsImg.setMaxHeight(200);
-            mObsImg.setMaxWidth(200);
+            mObsImg.setMaxHeight(180);
+            mObsImg.setMaxWidth(180);
 
             switch (loopI){
                 case 0:
@@ -203,8 +247,10 @@ public class InfoFragment extends Fragment {
                     }
 
                     if((mCloud.equals("-"))&&(mRainTrace.equals("0.0"))){
-                        msgSpn = new SpannableStringBuilder(("No Rain"));
-                        setFontSizeForPath(msgSpn, "No Rain", (int) mObsInfo.getTextSize() - 5);
+                        mObsImg.setVisibility(View.VISIBLE);
+                        mObsImg.setImageResource(R.drawable.no_rain);
+                        //msgSpn = new SpannableStringBuilder(("No Rain"));
+                        //setFontSizeForPath(msgSpn, "No Rain", (int) mObsInfo.getTextSize() - 5);
                     }
 
                     break;
@@ -268,7 +314,7 @@ public class InfoFragment extends Fragment {
             loopI++;
             if(loopI>3){loopI=0;}
 
-            setInfoHandler.postDelayed(this, 5000); //5 secs
+            setInfoHandler.postDelayed(this, updateSpeed); 
         }
     };
 
@@ -344,9 +390,12 @@ public class InfoFragment extends Fragment {
     private class getTomorrow extends AsyncTask<Void,Void,Void>{
         @Override
         protected Void doInBackground(Void... params){
-            Log.d("myApp", "getting tomorrows forecast");
+            Logging.toFile(getActivity().getApplicationContext(), "getting tomorrows forecast");
 
             FTPClient ftpClient = new FTPClient();
+            FileOutputStream stream = null;
+            //String filename = "IDW14199.xml";  //Precis Forecast XML Package (WA)
+            String filename = "IDW12300.xml";	//City Forecast - Perth (WA)
 
             try{
                 ftpClient.connect("ftp.bom.gov.au");
@@ -357,26 +406,34 @@ public class InfoFragment extends Fragment {
                 //change directory
                 Log.d("myApp", "it changed dir "+ ftpClient.changeWorkingDirectory("/anon/gen/fwo"));
 
-                String filename = "IDW14199.xml";
-
+                //download the file to be parsed
+                File fileDir = getActivity().getFilesDir();
+                File file = new File(fileDir, filename);
+                file.setWritable(true);
+                stream = new FileOutputStream(file);
                 ftpClient.enterLocalPassiveMode();
+                Log.d("myApp", "retrieved file? " + ftpClient.retrieveFile(filename, stream));
 
+                //end ftp
+                Log.d("myApp", "logged out? " + ftpClient.logout());
+                ftpClient.disconnect();
+
+                //parse XML
                 FileInputStream in = getActivity().openFileInput(filename);
                 BOMXmlParser bomParser = new BOMXmlParser();
 
                 try {
                     forecasts = bomParser.parse(in);
-
                 } catch (XmlPullParserException e) {
                     e.printStackTrace();
                 } finally {
                     if(in != null){
                         in.close();
+                        Log.d("myApp", "parsing over");
                     }
                 }
 
-                ftpClient.logout();
-                ftpClient.disconnect();
+
 
             } catch (UnknownHostException e1) {
                 e1.printStackTrace();
@@ -389,8 +446,11 @@ public class InfoFragment extends Fragment {
                 Log.e("myApp", "boom " + e1);
             }
 
-            return null;
+            for(int i = 0; i<forecasts.size();i++) {
+                Logging.toFile(getActivity().getApplicationContext(), forecasts.get(i).day + ": code " + forecasts.get(i).code + " precis " + forecasts.get(i).precis);
+            }
 
+            return null;
         }
     }
 
@@ -403,7 +463,7 @@ public class InfoFragment extends Fragment {
 
             String jsonString = "";
 
-            Log.d("myApp", "getting json");
+            Logging.toFile(getActivity().getApplicationContext(), "getting json for current observations");
 
             try {
                 URL url = new URL("http://reg.bom.gov.au/fwo/IDW60901/IDW60901." + locn + ".json");
@@ -467,7 +527,7 @@ public class InfoFragment extends Fragment {
             int index = mTime.indexOf("/");
             mTime = mTime.substring(index + 1);
 
-            Log.d("myApp", "new info at " + mTime + ": Wind: " + mWindSpd + mWindDir + " rain "
+            Logging.toFile(getActivity().getApplicationContext(), "Time: " + mTime + " Wind: " + mWindSpd + mWindDir + " rain "
                     + mRainTrace + " cloud " + mCloud + " humidity " + mHumidity + " Temp " + mTemp);
 
             return null;
@@ -481,5 +541,7 @@ public class InfoFragment extends Fragment {
         spannable.setSpan(new AbsoluteSizeSpan(fontSizeInPixel), startIndexOfPath,
                 startIndexOfPath + path.length(), 0);
     }
+
+
 
 }

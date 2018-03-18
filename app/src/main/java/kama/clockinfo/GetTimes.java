@@ -18,7 +18,7 @@ public class GetTimes {
 
         //TODO find ms til next o'clock or half past. Needs testing... seems to need a buffer for that fact that humans sieems to be involved in the update
 
-        Log.d("myApp", "finding ms to next obs update");
+//        Log.d("myApp", "finding ms to next obs update");
 
         Date date = new Date();
 
@@ -27,7 +27,7 @@ public class GetTimes {
         String currentMins = timeFormat.format(date);
         Integer mins = Integer.parseInt(currentMins);
 
-        Log.d("myApp", "string = "+currentMins+" integer = "+mins);
+//        Log.d("myApp", "string = "+currentMins+" integer = "+mins);
 
         //added 1000ms buffer
         //if minutes is equal to or greater than 30 find ms to next hour
@@ -38,7 +38,7 @@ public class GetTimes {
             ms = (30 - mins) * 60000 + 2000;
         }
 
-        Log.d("myApp", "There are " + ms + " milliseconds until the next obs update which is " + ms/60000+" minutes");
+//        Log.d("myApp", "There are " + ms + " milliseconds until the next obs update which is " + ms/60000+" minutes");
 
         return ms;
     }
@@ -48,7 +48,7 @@ public class GetTimes {
 
         //TODO find ms til next day. needs testing
 
-        Log.d("myApp", "finding ms to next day ticking over");
+//        Log.d("myApp", "finding ms to next day ticking over");
 
         Date date = new Date();
 
@@ -60,16 +60,16 @@ public class GetTimes {
         Integer hours = Integer.parseInt(currentHr);
         Integer mins = Integer.parseInt(currentMin);
 
-        Log.d("myApp", "got hours "+hours+" mins "+mins);
+//        Log.d("myApp", "got hours "+hours+" mins "+mins);
 
         //60 - minutes + 24 - hours * 60 * milliseconds
         ms = ((60 - mins) + ((24 - hours) * 60)) * 60000;
 
-        Log.d("myApp", "Calc is 60 - "+mins+" = "+ (60-mins)+" + 24 - "+hours+" = "
-                +(24-hours)+" * 60 = "+((24-hours)*60)+" * 60000 = " + ms
-                + " milliseconds until the next day");
-        Log.d("myApp", "minutes til tomorrow = "+ ms/60000);
-        Log.d("myApp", "hours til tomorrow = "+ ms/60000/60);
+//        Log.d("myApp", "Calc is 60 - "+mins+" = "+ (60-mins)+" + 24 - "+hours+" = "
+//                +(24-hours)+" * 60 = "+((24-hours)*60)+" * 60000 = " + ms
+//                + " milliseconds until the next day");
+//        Log.d("myApp", "minutes til tomorrow = "+ ms/60000);
+//        Log.d("myApp", "hours til tomorrow = "+ ms/60000/60);
 
         return ms;
     }
@@ -79,16 +79,16 @@ public class GetTimes {
 
         //TODO find ms til given date/time. needs testing
 
-        Log.d("myApp", "finding ms to given time");
+//        Log.d("myApp", "finding ms to given time");
 
         Date date = new Date();
         start = date.getTime();
         end = givenTime.getTime();
         ms = end-start;
 
-        Log.d("myApp", "start = "+start);
-        Log.d("myApp", "end = "+end);
-        Log.d("myApp", "diff = "+ms);
+//        Log.d("myApp", "start = "+start);
+//        Log.d("myApp", "end = "+end);
+//        Log.d("myApp", "diff = "+ms);
 
         return ms;
     }
@@ -120,7 +120,7 @@ public class GetTimes {
         SimpleDateFormat ft = new SimpleDateFormat("d/M/yyyy");
         date = ft.format(tomorrow);
 
-        Log.d("myApp", "according to my calculations, tomorrow is " + date);
+//        Log.d("myApp", "according to my calculations, tomorrow is " + date);
 
         return date;
     }
